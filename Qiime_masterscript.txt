@@ -9,7 +9,7 @@ conda activate /opt/apps/apps/python/qiime2/2021.11
 
 qiime tools import \
   --type 'SampleData[PairedEndSequencesWithQuality]' \
-  --input-path /mnt/fls01-home01/mfbx4el4/scratch/16S_exo_experiment \
+  --input-path /path/to/folder/containing/fastQs \
   --input-format CasavaOneEightSingleLanePerSampleDirFmt \
   --output-path demux-paired-exorun1_new.qza
 
