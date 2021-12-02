@@ -1,9 +1,3 @@
-#!/bin/bash -l
-#$ -j y
-#$ -cwd
-#$ -pe smp.pe 16
-#$ -l mem512
-
 module load apps/anaconda3/5.2.0/bin
 source /opt/apps/apps/python/conda_init/conda_init_bash.sh
 conda activate /opt/apps/apps/python/qiime2/2021.11
@@ -13,11 +7,11 @@ conda activate /opt/apps/apps/python/qiime2/2021.11
 ## Casava 1.8 paired-end demultiplexed fastq section of import tutorial
 ## ensure correct naming convention (no _ in sample ID but _ in rest of file)
 
-#qiime tools import \
-#  --type 'SampleData[PairedEndSequencesWithQuality]' \
-#  --input-path /mnt/fls01-home01/mfbx4el4/scratch/16S_exo_experiment \
-#  --input-format CasavaOneEightSingleLanePerSampleDirFmt \
-#  --output-path demux-paired-exorun1_new.qza
+qiime tools import \
+  --type 'SampleData[PairedEndSequencesWithQuality]' \
+  --input-path /mnt/fls01-home01/mfbx4el4/scratch/16S_exo_experiment \
+  --input-format CasavaOneEightSingleLanePerSampleDirFmt \
+  --output-path demux-paired-exorun1_new.qza
 
 # now going to denoise with deblur software
 # in deblur must do one step of filtering and then view the quality plot
@@ -27,19 +21,19 @@ conda activate /opt/apps/apps/python/qiime2/2021.11
 # standard filtering based on quality scored per base described in bokulich et al 2013
 # uses output file from the import script as input
 
-#qiime quality-filter q-score \
-# --i-demux demux-paired-exorun1_new.qza \
-# --o-filtered-sequences demux-exo1-filtered_new.qza \
-# --o-filter-stats demux-exo1-filter-stats_new.qza
+qiime quality-filter q-score \
+ --i-demux demux-paired-exorun1_new.qza \
+ --o-filtered-sequences demux-exo1-filtered_new.qza \
+ --o-filter-stats demux-exo1-filter-stats_new.qza
 
 #echo qscore filter complete
 
 ## in order to view the output must convert from qiime artifact .qza
 ## to a qiime visual output .qzv using below scripts
 
-#qiime demux summarize \
-#  --i-data demux-exo1-filtered_new.qza \
-#  --o-visualization demux-exo1-filtered_new.qzv
+qiime demux summarize \
+  --i-data demux-exo1-filtered_new.qza \
+  --o-visualization demux-exo1-filtered_new.qzv
 
 #echo qscore filter visualisation file created
 ## now based on the quality plot from qiime demux summarise
@@ -47,49 +41,49 @@ conda activate /opt/apps/apps/python/qiime2/2021.11
 ## the last base has a drop in quality
 ## this step takes a while
 
-#qiime deblur denoise-16S \
-#  --i-demultiplexed-seqs demux-exo1-filtered_new.qza \
-#  --p-trim-length 250 \
-#  --o-representative-sequences rep-seqs-deblur-exo1_new.qza \
-#  --o-table table-deblur-exo1_new.qza \
-#  --p-sample-stats \
-#  --o-stats deblur-stats-exo1_new.qza
+qiime deblur denoise-16S \
+  --i-demultiplexed-seqs demux-exo1-filtered_new.qza \
+  --p-trim-length 250 \
+  --o-representative-sequences rep-seqs-deblur-exo1_new.qza \
+  --o-table table-deblur-exo1_new.qza \
+  --p-sample-stats \
+  --o-stats deblur-stats-exo1_new.qza
 
 # echo deblur complete!
 
 ## next use the feature table summarize / tabulate seqs to visualise the
 ## QC'd data
 
-#qiime metadata tabulate \
-#  --m-input-file demux-exo1-filter-stats_new.qza \
-#  --o-visualization demux-exo1-filter-stats_new.qzv
-#qiime deblur visualize-stats \
-#  --i-deblur-stats deblur-stats-exo1_new.qza \
-#  --o-visualization deblur-stats-exo1_new.qzv
+qiime metadata tabulate \
+  --m-input-file demux-exo1-filter-stats_new.qza \
+  --o-visualization demux-exo1-filter-stats_new.qzv
+qiime deblur visualize-stats \
+  --i-deblur-stats deblur-stats-exo1_new.qza \
+  --o-visualization deblur-stats-exo1_new.qzv
 
 ## here combine filtered rep seq data (qiime Deblur denoise-16S output)
 ## with metadata created in google sheet, barcode column left blank 
 ## (since its demultiplexed)but header is required. sample-ID must be the
 ## first portion of the fastq filenames. Use keemei to validate.
 
-#qiime feature-table summarize \
-#  --i-table table-deblur-exo1_new.qza \
-#  --o-visualization table.qzv \
-#  --m-sample-metadata-file test_metadata.tsv
-#qiime feature-table tabulate-seqs \
-#  --i-data rep-seqs-deblur-exo1_new.qza \
-#  --o-visualization rep-seqs.qzv
+qiime feature-table summarize \
+  --i-table table-deblur-exo1_new.qza \
+  --o-visualization table.qzv \
+  --m-sample-metadata-file test_metadata.tsv
+qiime feature-table tabulate-seqs \
+  --i-data rep-seqs-deblur-exo1_new.qza \
+  --o-visualization rep-seqs.qzv
 
 #### DIVERSITY ANALYSIS #####
 
 ## do a multiple sequence alignment to generate phylogenetic tree using mafft program
 
-#qiime phylogeny align-to-tree-mafft-fasttree \
-#  --i-sequences rep-seqs-deblur-exo1_new.qza \
-#  --o-alignment aligned-rep-seqs.qza \
-#  --o-masked-alignment masked-aligned-rep-seqs.qza \
-#  --o-tree unrooted-tree.qza \
-#  --o-rooted-tree rooted-tree.qza
+qiime phylogeny align-to-tree-mafft-fasttree \
+  --i-sequences rep-seqs-deblur-exo1_new.qza \
+  --o-alignment aligned-rep-seqs.qza \
+  --o-masked-alignment masked-aligned-rep-seqs.qza \
+  --o-tree unrooted-tree.qza \
+  --o-rooted-tree rooted-tree.qza
 
 ## using the output from the phylogenetic tree script can do alpha diversity
 ## between group analysis
@@ -100,12 +94,12 @@ conda activate /opt/apps/apps/python/qiime2/2021.11
 ## Choose a value that is as high as possible (so you retain more sequences per sample) while excluding as few samples as possible.
 ## after viewing table.qzv I have chosen 2840 which drops no samples and captures over half of all other sample features too
 
-#qiime diversity core-metrics-phylogenetic \
-#  --i-phylogeny rooted-tree.qza \
-#  --i-table table-deblur-exo1_new.qza \
-#  --p-sampling-depth 2840 \
-#  --m-metadata-file test_metadata.tsv \
-#  --output-dir core-metrics-results
+qiime diversity core-metrics-phylogenetic \
+  --i-phylogeny rooted-tree.qza \
+  --i-table table-deblur-exo1_new.qza \
+  --p-sampling-depth 2840 \
+  --m-metadata-file test_metadata.tsv \
+  --output-dir core-metrics-results
 
 #Alpha diversity
 #Shannon’s diversity index (a quantitative measure of community richness)
@@ -119,15 +113,15 @@ conda activate /opt/apps/apps/python/qiime2/2021.11
 ## We’ll first test for associations between categorical metadata columns and alpha diversity data. 
 ## We’ll do that here for the Faith Phylogenetic Diversity (a measure of community richness) and evenness metrics.
 
-#qiime diversity alpha-group-significance \
-#  --i-alpha-diversity core-metrics-results/faith_pd_vector.qza \
-#  --m-metadata-file test_metadata.tsv \
-#  --o-visualization core-metrics-results/faith-pd-group-significance.qzv
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity core-metrics-results/faith_pd_vector.qza \
+  --m-metadata-file test_metadata.tsv \
+  --o-visualization core-metrics-results/faith-pd-group-significance.qzv
 
-#qiime diversity alpha-group-significance \
-#  --i-alpha-diversity core-metrics-results/evenness_vector.qza \
-#  --m-metadata-file test_metadata.tsv \
-#  --o-visualization core-metrics-results/evenness-group-significance.qzv
+qiime diversity alpha-group-significance \
+  --i-alpha-diversity core-metrics-results/evenness_vector.qza \
+  --m-metadata-file test_metadata.tsv \
+  --o-visualization core-metrics-results/evenness-group-significance.qzv
 
 ### ALPHA RAREFACTION ANALYSIS ###
 
@@ -137,12 +131,12 @@ conda activate /opt/apps/apps/python/qiime2/2021.11
 ## the top plot lines should level out at some depth along x axis suggesting
 # that additional sequences beyond that depth won't lead to additional features
 
-#qiime diversity alpha-rarefaction \
-#  --i-table table.qza \
-#  --i-phylogeny rooted-tree.qza \
-#  --p-max-depth 4000 \
-#  --m-metadata-file sample-metadata.tsv \
-#  --o-visualization alpha-rarefaction.qzv
+qiime diversity alpha-rarefaction \
+  --i-table table.qza \
+  --i-phylogeny rooted-tree.qza \
+  --p-max-depth 4000 \
+  --m-metadata-file sample-metadata.tsv \
+  --o-visualization alpha-rarefaction.qzv
 
 ### TAXONOMIC ANALYSIS ###
 
@@ -151,24 +145,24 @@ conda activate /opt/apps/apps/python/qiime2/2021.11
 ## are optimised for the 515f 806 primer set spanning V4
 ## NEED to TRAIN OWN CLASSIFIER
 
-#qiime feature-classifier classify-sklearn \
-#  --i-classifier gg-13-8-99-515-806-nb-classifier.qza \
-#  --i-reads rep-seqs-deblur-exo1_new.qza \
-#  --o-classification taxonomy.qza
+qiime feature-classifier classify-sklearn \
+  --i-classifier gg-13-8-99-515-806-nb-classifier.qza \
+  --i-reads rep-seqs-deblur-exo1_new.qza \
+  --o-classification taxonomy.qza
 
-#qiime metadata tabulate \
-#  --m-input-file taxonomy.qza \
-#  --o-visualization taxonomy.qzv
+qiime metadata tabulate \
+  --m-input-file taxonomy.qza \
+  --o-visualization taxonomy.qzv
 
 #echo classification complete
 
 ## stacked barplots
 
-#qiime taxa barplot \
-#  --i-table table-deblur-exo1_new.qza \
-#  --i-taxonomy taxonomy.qza \
-#  --m-metadata-file test_metadata.tsv \
-#  --o-visualization taxa-bar-plots_1.qzv
+qiime taxa barplot \
+  --i-table table-deblur-exo1_new.qza \
+  --i-taxonomy taxonomy.qza \
+  --m-metadata-file test_metadata.tsv \
+  --o-visualization taxa-bar-plots_1.qzv
 
 #echo stacked barplots produced
 
